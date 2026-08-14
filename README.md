@@ -2,7 +2,7 @@
 
 An interactive, single-file dashboard for exploring whether buying a home would leave you richer than renting the same home and investing the difference — across positive, neutral, and negative economic scenarios over a 30-year outlook.
 
-**Live demo:** enable GitHub Pages on this repo (Settings → Pages → deploy from `main`) and it will be served at `https://<your-username>.github.io/<repo-name>/`.
+[**Live demo**](https://mayankles.github.io/buying-advantage-dashboard/).
 
 ## What it does
 
