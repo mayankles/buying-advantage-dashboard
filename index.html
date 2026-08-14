@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The buying advantage — a housing scenario explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f7f2e8; --paper2:#f1eadc; --card:#fbf8f1;
+    --ink:#211e18; --ink2:#6e6759; --ink3:#a39a87;
+    --hair:rgba(33,30,24,.14); --hair2:rgba(33,30,24,.28);
+    --pos:#20735c; --neu:#a97e22; --neg:#bd5343;
+    --pos-tint:rgba(32,115,92,.10); --neu-tint:rgba(169,126,34,.12); --neg-tint:rgba(189,83,67,.10);
+    --pin:#7a5f9e;
+    --serif:"Fraunces",Georgia,serif;
+    --sans:"Inter",-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:14px; line-height:1.55;
+  }
+  .app{display:flex; min-height:100vh;}
+
+  /* ---------- Sidebar ---------- */
+  .sidebar{
+    width:300px; flex-shrink:0; background:var(--paper2);
+    border-right:1px solid var(--hair);
+    padding:30px 24px 48px;
+    position:sticky; top:0; height:100vh; overflow-y:auto;
+  }
+  .sidebar::-webkit-scrollbar{width:6px;}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--hair2); border-radius:3px;}
+  .brand{font-family:var(--serif); font-weight:500; font-size:19px; letter-spacing:-.01em;}
+  .brand em{font-style:italic; font-weight:400;}
+  .brand-sub{font-size:11px; color:var(--ink3); letter-spacing:.14em; text-transform:uppercase; margin:4px 0 26px;}
+  .side-label{
+    font-size:10.5px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--ink2); margin:0 0 12px; padding-bottom:6px; border-bottom:1px solid var(--hair);
+  }
+  .side-section{margin-bottom:26px;}
+  .field{margin-bottom:13px;}
+  .field label{display:block; font-size:11.5px; color:var(--ink2); margin-bottom:2px;}
+  .field input[type=number], .field select{
+    width:100%; background:transparent; border:none; border-bottom:1px solid var(--hair2);
+    border-radius:0; padding:4px 2px 5px; font-size:15px; color:var(--ink);
+    font-family:var(--serif); font-weight:500; transition:border-color .15s;
+    font-variant-numeric:tabular-nums;
+  }
+  .field input[type=number]:focus, .field select:focus{outline:none; border-bottom-color:var(--ink);}
+  .dp-row{display:flex; gap:10px; align-items:flex-end;}
+  .dp-row input{flex:1;}
+  .dp-row select{width:58px; font-size:13px; font-family:var(--sans); color:var(--ink2); cursor:pointer;}
+  details.more{margin-top:6px;}
+  details.more summary{
+    cursor:pointer; font-size:11.5px; color:var(--ink2); user-select:none; list-style:none;
+    display:flex; align-items:center; gap:6px; font-style:italic; font-family:var(--serif); font-size:13px;
+  }
+  details.more summary::-webkit-details-marker{display:none;}
+  details.more summary::after{content:"+"; font-style:normal; color:var(--ink3);}
+  details.more[open] summary::after{content:"−";}
+  details.more[open] summary{margin-bottom:12px;}
+  details.scen{margin-bottom:14px;}
+  details.scen summary{
+    cursor:pointer; user-select:none; list-style:none;
+    display:flex; align-items:baseline; gap:8px; padding:6px 0;
+    border-bottom:1px solid var(--hair);
+  }
+  details.scen summary::-webkit-details-marker{display:none;}
+  details.scen summary .name{font-family:var(--serif); font-size:15px; font-weight:500;}
+  .scen-dot{width:9px; height:9px; border-radius:50%; align-self:center;}
+  .scen-peek{margin-left:auto; font-size:11px; color:var(--ink3); font-variant-numeric:tabular-nums;}
+  details.scen .scen-body{padding:10px 0 4px 17px;}
+  .side-note{font-size:11px; color:var(--ink3); line-height:1.6; margin-top:14px; font-style:italic; font-family:var(--serif); font-size:12.5px;}
+
+  /* ---------- Main ---------- */
+  .main{flex:1; min-width:0; padding:44px 48px 72px; max-width:1060px;}
+  .kicker{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--ink3); margin:0 0 10px;}
+  h1{
+    font-family:var(--serif); font-size:42px; font-weight:300; letter-spacing:-.02em;
+    line-height:1.12; margin:0 0 12px; max-width:640px;
+  }
+  h1 em{font-style:italic; font-weight:400;}
+  .subtitle{color:var(--ink2); font-size:14px; margin:0 0 34px; max-width:560px;}
+  .subtitle .pin-year{color:var(--pin); font-weight:600; border-bottom:1px dotted var(--pin);}
+
+  .metrics{display:grid; grid-template-columns:repeat(3,1fr); gap:0; margin-bottom:38px; border-top:1px solid var(--hair2); border-bottom:1px solid var(--hair2);}
+  @media (max-width:920px){ .metrics{grid-template-columns:1fr;} }
+  .metric{padding:20px 22px 22px; border-right:1px solid var(--hair);}
+  .metric:last-child{border-right:none;}
+  @media (max-width:920px){ .metric{border-right:none; border-bottom:1px solid var(--hair);} .metric:last-child{border-bottom:none;} }
+  .metric .scen-name{
+    font-family:var(--serif); font-style:italic; font-size:16px; margin-bottom:8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;}
+  .chip{
+    font-size:10.5px; font-weight:500; padding:3px 9px; border-radius:20px;
+    letter-spacing:.02em;
+  }
+  .chip.pos{background:var(--pos-tint); color:var(--pos);}
+  .chip.neu{background:var(--neu-tint); color:var(--neu);}
+  .chip.neg{background:var(--neg-tint); color:var(--neg);}
+  .metric .value{
+    font-family:var(--serif); font-size:34px; font-weight:500; letter-spacing:-.02em;
+    line-height:1; font-variant-numeric:tabular-nums;
+  }
+  .metric .value-label{font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink3); margin:6px 0 0;}
+  .metric .sub{font-size:12px; color:var(--ink2); margin-top:10px;}
+  .pos-text{color:var(--pos);} .neg-text{color:var(--neg);}
+
+  .be-track{margin-top:16px;}
+  .be-track .be-label{font-size:11px; color:var(--ink2); margin-bottom:7px;}
+  .be-track .be-label strong{font-family:var(--serif); font-style:italic; font-weight:500; font-size:13px; color:var(--ink);}
+  .track{position:relative; height:14px;}
+  .track .rail{position:absolute; top:6px; left:0; right:0; height:2px; background:var(--hair); border-radius:1px;}
+  .track .fill{position:absolute; top:6px; left:0; height:2px; border-radius:1px;}
+  .track .knot{
+    position:absolute; top:0; width:14px; height:14px; border-radius:50%;
+    transform:translateX(-50%); border:2.5px solid var(--paper);
+    box-shadow:0 0 0 1px var(--hair2);
+  }
+  .track .tick-label{position:absolute; top:16px; font-size:9.5px; color:var(--ink3);}
+
+  .panel{margin-bottom:40px;}
+  .panel-head{display:flex; align-items:baseline; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:2px;}
+  .panel h2{font-family:var(--serif); font-size:21px; font-weight:400; margin:0;}
+  .panel h2 em{font-style:italic;}
+  .panel .hint{font-size:11px; color:var(--ink3); letter-spacing:.06em; text-transform:uppercase;}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; margin:10px 0 2px; font-size:12px; color:var(--ink2);}
+  .legend span{display:inline-flex; align-items:center; gap:7px;}
+  .lswatch{width:18px; height:0; border-top-width:2.5px; display:inline-block;}
+  .hero-wrap{position:relative; height:410px; margin-top:6px;}
+  .mini-wrap{position:relative; height:225px; margin-top:6px;}
+
+  table{width:100%; border-collapse:collapse; font-size:13px; margin-top:8px;}
+  th,td{text-align:right; padding:11px 10px; border-bottom:1px solid var(--hair);}
+  th:first-child,td:first-child{text-align:left;}
+  thead th{color:var(--ink3); font-weight:500; font-size:10.5px; text-transform:uppercase; letter-spacing:.1em; border-bottom:1px solid var(--hair2);}
+  tbody td{font-variant-numeric:tabular-nums;}
+  tbody td:first-child{font-family:var(--serif); font-style:italic; font-size:14.5px;}
+  tbody tr:last-child td{border-bottom:none;}
+
+  .foot-note{
+    font-family:var(--serif); font-style:italic; font-size:13.5px; color:var(--ink2);
+    line-height:1.7; max-width:640px; border-top:1px solid var(--hair2); padding-top:18px;
+  }
+  .foot-note details{margin-top:6px; font-family:var(--sans); font-style:normal; font-size:12px;}
+  .foot-note summary{cursor:pointer; user-select:none; color:var(--ink2); text-decoration:underline; text-underline-offset:3px;}
+
+  @media (max-width:820px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%; height:auto; position:relative; border-right:none; border-bottom:1px solid var(--hair);}
+    .main{padding:32px 20px 56px;}
+    h1{font-size:32px;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">The <em>buying</em> advantage</div>
+    <div class="brand-sub">A housing scenario explorer</div>
+
+    <div class="side-section">
+      <div class="side-label">Purchase</div>
+      <div class="field"><label>Home price ($)</label><input type="number" id="price" value="425000" step="5000"></div>
+      <div class="field"><label>Down payment</label>
+        <div class="dp-row">
+          <input type="number" id="downVal" value="20" step="1">
+          <select id="downUnit"><option value="pct" selected>%</option><option value="usd">$</option></select>
+        </div>
+      </div>
+      <div class="field"><label>Mortgage rate (% APR)</label><input type="number" id="rate" value="6.7" step="0.05"></div>
+      <div class="field"><label>Loan term</label>
+        <select id="term"><option value="30" selected>30 years</option><option value="15">15 years</option></select>
+      </div>
+      <div class="field"><label>Comparable rent ($/mo)</label><input type="number" id="rent0" value="2400" step="50"></div>
+
+      <details class="more">
+        <summary>More assumptions</summary>
+        <div class="field"><label>Property tax (%/yr of value)</label><input type="number" id="taxPct" value="1.1" step="0.05"></div>
+        <div class="field"><label>Home insurance ($/yr)</label><input type="number" id="insAnnual" value="1800" step="50"></div>
+        <div class="field"><label>Maintenance (%/yr of value)</label><input type="number" id="maintPct" value="1.0" step="0.1"></div>
+        <div class="field"><label>HOA ($/mo)</label><input type="number" id="hoaMonthly" value="0" step="10"></div>
+        <div class="field"><label>Closing costs, buying (%)</label><input type="number" id="closingPct" value="3" step="0.5"></div>
+        <div class="field"><label>Selling costs, if sold (%)</label><input type="number" id="sellPct" value="7" step="0.5"></div>
+        <div class="field"><label>Refi sensitivity (% rate drop)</label><input type="number" id="refiThreshold" value="0.5" step="0.1"></div>
+      </details>
+    </div>
+
+    <div class="side-section">
+      <div class="side-label">Scenarios</div>
+
+      <details class="scen">
+        <summary><span class="scen-dot" style="background:var(--pos)"></span><span class="name">Positive</span><span class="scen-peek" id="peek_pos"></span></summary>
+        <div class="scen-body">
+          <div class="field"><label>Home appreciation (%/yr)</label><input type="number" id="pos_appr" value="6" step="0.5"></div>
+          <div class="field"><label>Refi rate vs. yours (pp)</label><input type="number" id="pos_refiOff" value="-1.5" step="0.25"></div>
+          <div class="field"><label>Investment return (%/yr)</label><input type="number" id="pos_inv" value="9" step="0.5"></div>
+          <div class="field"><label>Rent growth (%/yr)</label><input type="number" id="pos_rent" value="4" step="0.5"></div>
+        </div>
+      </details>
+
+      <details class="scen">
+        <summary><span class="scen-dot" style="background:var(--neu)"></span><span class="name">Neutral</span><span class="scen-peek" id="peek_neu"></span></summary>
+        <div class="scen-body">
+          <div class="field"><label>Home appreciation (%/yr)</label><input type="number" id="neu_appr" value="3" step="0.5"></div>
+          <div class="field"><label>Refi rate vs. yours (pp)</label><input type="number" id="neu_refiOff" value="0" step="0.25"></div>
+          <div class="field"><label>Investment return (%/yr)</label><input type="number" id="neu_inv" value="7" step="0.5"></div>
+          <div class="field"><label>Rent growth (%/yr)</label><input type="number" id="neu_rent" value="3" step="0.5"></div>
+        </div>
+      </details>
+
+      <details class="scen">
+        <summary><span class="scen-dot" style="background:var(--neg)"></span><span class="name">Negative</span><span class="scen-peek" id="peek_neg"></span></summary>
+        <div class="scen-body">
+          <div class="field"><label>Home appreciation (%/yr)</label><input type="number" id="neg_appr" value="-3" step="0.5"></div>
+          <div class="field"><label>Refi rate vs. yours (pp)</label><input type="number" id="neg_refiOff" value="-1.25" step="0.25"></div>
+          <div class="field"><label>Investment return (%/yr)</label><input type="number" id="neg_inv" value="-1" step="0.5"></div>
+          <div class="field"><label>Rent growth (%/yr)</label><input type="number" id="neg_rent" value="1" step="0.5"></div>
+        </div>
+      </details>
+
+      <div class="side-note">Scenario defaults move together the way rates, prices, and markets historically have — but every number is yours to bend.</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <p class="kicker">Buy vs. rent &amp; invest · 30-year outlook</p>
+    <h1>Would buying leave you <em>richer</em> than renting?</h1>
+    <p class="subtitle">Each line is a possible economy. Above the zero line, buying wins; below it, renting and investing the difference wins. Pinned at <span class="pin-year" id="pinLabel">year 5</span> — click the chart to move the pin.</p>
+
+    <div class="metrics" id="metricCards"></div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>The <em>advantage</em>, year by year</h2>
+        <span class="hint">Click to pin a year</span>
+      </div>
+      <div class="legend" id="legend1"></div>
+      <div class="hero-wrap"><canvas id="chartAdvantage" role="img" aria-label="Line chart of net worth advantage of buying versus renting and investing, over 30 years, for positive, neutral, and negative scenarios, with break-even markers where each line crosses zero"></canvas></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>The <em>ledger</em> <span style="color:var(--ink3); font-size:15px;" id="tableYearLabel">at year 5</span></h2>
+        <span class="hint">Assumes you sell that year</span>
+      </div>
+      <table id="summaryTable">
+        <thead>
+          <tr><th>Scenario</th><th>Home value</th><th>Loan balance</th><th>Net equity if sold</th><th>Rent + invest net worth</th><th>Buying advantage</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Home <em>equity</em> if sold</h2>
+        <span class="hint">Value − loan − selling costs</span>
+      </div>
+      <div class="mini-wrap"><canvas id="chartEquity" role="img" aria-label="Line chart of net home equity if sold, over 30 years, for positive, neutral, and negative scenarios"></canvas></div>
+    </div>
+
+    <div class="foot-note">
+      A negative advantage means renting the same home and investing your down payment, closing costs, and monthly savings would have left you wealthier. Buying starts roughly ten percent underwater — the round-trip cost of transacting — and climbs out through equity and appreciation.
+      <details><summary>How the refinance assumption works</summary>
+      Each scenario's refi rate is your mortgage rate plus its offset. If that lands more than your refi sensitivity below your locked rate, the model refinances at the start of year 2, re-amortizing the remaining balance over the remaining original term. The payment savings get invested.
+      </details>
+    </div>
+  </main>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const HORIZON = 30;
+let pinnedYear = 5;
+
+function amortizeMonths(principal, annualRate, termYears, months){
+  const r = annualRate/12;
+  const n = Math.max(termYears*12, 1);
+  const payment = r === 0 ? principal/n : principal*r/(1-Math.pow(1+r,-n));
+  let bal = principal;
+  const schedule = [];
+  for(let m=0;m<months;m++){
+    const interest = bal*r;
+    const princ = Math.min(payment-interest, bal);
+    bal = Math.max(0, bal-princ);
+    schedule.push({interest, principal:princ, balance:bal, payment});
+  }
+  return {payment, schedule};
+}
+
+function runScenario(inp, scen, horizonYears){
+  const loan = inp.price*(1-inp.downPct);
+  const totalMonths = horizonYears*12;
+  const refiRate = Math.max(0, inp.lockedRate + scen.refiOffset);
+  const refiApplies = (inp.lockedRate - refiRate) >= inp.refiThreshold;
+  const refiMonth = 12;
+
+  let schedule;
+  if(!refiApplies || totalMonths <= refiMonth){
+    schedule = amortizeMonths(loan, inp.lockedRate, inp.termYears, totalMonths).schedule;
+  } else {
+    const pre = amortizeMonths(loan, inp.lockedRate, inp.termYears, refiMonth).schedule;
+    const balAtRefi = pre[pre.length-1].balance;
+    const remainingTermMonths = inp.termYears*12 - refiMonth;
+    const post = amortizeMonths(balAtRefi, refiRate, remainingTermMonths/12, totalMonths-refiMonth).schedule;
+    schedule = pre.concat(post);
+  }
+
+  const initialCash = inp.price*inp.downPct + inp.price*inp.closingPct;
+  let buyerPortfolio = 0;
+  let renterPortfolio = initialCash;
+  const invMonthly = scen.invReturn/12;
+  const apprMonthly = Math.pow(1+scen.appreciation,1/12)-1;
+  const rentGrowthMonthly = Math.pow(1+scen.rentGrowth,1/12)-1;
+
+  let homeValue = inp.price;
+  let rent = inp.rent0;
+  const yearly = [{year:0, homeValue:inp.price, balance:loan, equity:inp.price-loan,
+                    netProceeds:inp.price-loan-inp.sellPct*inp.price,
+                    buyerNW:inp.price-loan-inp.sellPct*inp.price,
+                    renterNW:initialCash,
+                    advantage:(inp.price-loan-inp.sellPct*inp.price)-initialCash}];
+
+  for(let m=1;m<=totalMonths;m++){
+    homeValue *= (1+apprMonthly);
+    rent *= (1+rentGrowthMonthly);
+    const s = schedule[m-1];
+    const ownCost = s.payment + inp.taxPct*homeValue/12 + inp.insAnnual/12 + inp.maintPct*homeValue/12 + inp.hoaMonthly;
+    if(ownCost > rent){ renterPortfolio += (ownCost-rent); }
+    else { buyerPortfolio += (rent-ownCost); }
+    buyerPortfolio *= (1+invMonthly);
+    renterPortfolio *= (1+invMonthly);
+
+    if(m % 12 === 0){
+      const bal = s.balance;
+      const netProceeds = homeValue - bal - inp.sellPct*homeValue;
+      yearly.push({year:m/12, homeValue, balance:bal, equity:homeValue-bal, netProceeds,
+                   buyerNW:netProceeds+buyerPortfolio, renterNW:renterPortfolio,
+                   advantage:netProceeds+buyerPortfolio-renterPortfolio});
+    }
+  }
+  return yearly;
+}
+
+function fmtUSD(v){
+  const sign = v<0 ? "−" : "";
+  return sign + "$" + Math.round(Math.abs(v)).toLocaleString();
+}
+function fmtUSDShort(v){
+  const sign = v<0 ? "−" : "";
+  const a = Math.abs(v);
+  if(a>=1000000) return sign+"$"+(a/1000000).toFixed(2).replace(/\.?0+$/,"")+"M";
+  if(a>=1000) return sign+"$"+Math.round(a/1000)+"k";
+  return sign+"$"+Math.round(a);
+}
+function fmtPct(v){
+  const s = (v*100).toFixed(1).replace(/\.0$/,"");
+  return (v>0?"+":"")+s+"%";
+}
+
+const CSS = getComputedStyle(document.documentElement);
+const COLORS = {
+  positive: CSS.getPropertyValue("--pos").trim(),
+  neutral: CSS.getPropertyValue("--neu").trim(),
+  negative: CSS.getPropertyValue("--neg").trim()
+};
+const PIN = CSS.getPropertyValue("--pin").trim();
+const PAPER = CSS.getPropertyValue("--paper").trim();
+const ORDER = [["negative","Negative"],["neutral","Neutral"],["positive","Positive"]];
+const GRID = "rgba(33,30,24,.06)";
+const TICK = "#8d8676";
+const DASH = { positive:[], neutral:[7,5], negative:[2,4] };
+
+const belowZeroShade = {
+  id:"belowZeroShade",
+  beforeDatasetsDraw(chart){
+    const {ctx, chartArea, scales} = chart;
+    if(!scales.y) return;
+    const y0 = scales.y.getPixelForValue(0);
+    if(y0 < chartArea.top || y0 > chartArea.bottom) return;
+    ctx.save();
+    ctx.fillStyle = "rgba(189,83,67,0.045)";
+    ctx.fillRect(chartArea.left, y0, chartArea.right-chartArea.left, chartArea.bottom-y0);
+    ctx.strokeStyle = "rgba(33,30,24,0.35)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(chartArea.left, y0);
+    ctx.lineTo(chartArea.right, y0);
+    ctx.stroke();
+    ctx.fillStyle = TICK;
+    ctx.font = "italic 500 11px Fraunces, Georgia, serif";
+    ctx.textAlign = "left";
+    ctx.fillText("buying wins", chartArea.left+8, y0-8);
+    ctx.fillText("renting wins", chartArea.left+8, y0+16);
+    ctx.restore();
+  }
+};
+
+let breakevens = {};
+const breakevenRings = {
+  id:"breakevenRings",
+  afterDatasetsDraw(chart){
+    const {ctx, scales, chartArea} = chart;
+    if(!scales.y) return;
+    ctx.save();
+    for(const [key] of ORDER){
+      const be = breakevens[key];
+      if(be === null || be === undefined) continue;
+      const x = scales.x.getPixelForValue(be);
+      const y = scales.y.getPixelForValue(0);
+      if(x < chartArea.left || x > chartArea.right) continue;
+      ctx.beginPath();
+      ctx.arc(x, y, 6.5, 0, Math.PI*2);
+      ctx.fillStyle = PAPER;
+      ctx.fill();
+      ctx.lineWidth = 2.5;
+      ctx.strokeStyle = COLORS[key];
+      ctx.stroke();
+      ctx.fillStyle = COLORS[key];
+      ctx.font = "italic 500 11px Fraunces, Georgia, serif";
+      ctx.textAlign = "center";
+      ctx.fillText("yr "+be, x, y+24);
+    }
+    ctx.restore();
+  }
+};
+
+const pinMarker = {
+  id:"pinMarker",
+  afterDatasetsDraw(chart){
+    const {ctx, chartArea, scales} = chart;
+    if(!scales.x) return;
+    const x = scales.x.getPixelForValue(pinnedYear);
+    if(x < chartArea.left || x > chartArea.right) return;
+    ctx.save();
+    ctx.strokeStyle = "rgba(122,95,158,0.5)";
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([1,4]);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(x, chartArea.top+4);
+    ctx.lineTo(x, chartArea.bottom);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = PIN;
+    ctx.font = "italic 500 12px Fraunces, Georgia, serif";
+    ctx.textAlign = "center";
+    ctx.fillText("year "+pinnedYear, x, chartArea.top-6);
+    ctx.restore();
+  }
+};
+
+let chartAdvantage=null, chartEquity=null;
+let lastResults = null, lastScenarios = null;
+
+function readInputs(){
+  const g = id => parseFloat(document.getElementById(id).value)||0;
+  const price = g("price");
+  const unit = document.getElementById("downUnit").value;
+  const downPct = unit === "usd" ? (price>0 ? g("downVal")/price : 0) : g("downVal")/100;
+  const inp = {
+    price, downPct, lockedRate:g("rate")/100,
+    termYears:parseFloat(document.getElementById("term").value)||30,
+    taxPct:g("taxPct")/100, insAnnual:g("insAnnual"), maintPct:g("maintPct")/100,
+    hoaMonthly:g("hoaMonthly"), closingPct:g("closingPct")/100, sellPct:g("sellPct")/100,
+    rent0:g("rent0"), refiThreshold:g("refiThreshold")/100
+  };
+  const scenarios = {
+    positive:{appreciation:g("pos_appr")/100, refiOffset:g("pos_refiOff")/100, invReturn:g("pos_inv")/100, rentGrowth:g("pos_rent")/100},
+    neutral:{appreciation:g("neu_appr")/100, refiOffset:g("neu_refiOff")/100, invReturn:g("neu_inv")/100, rentGrowth:g("neu_rent")/100},
+    negative:{appreciation:g("neg_appr")/100, refiOffset:g("neg_refiOff")/100, invReturn:g("neg_inv")/100, rentGrowth:g("neg_rent")/100}
+  };
+  return {inp, scenarios};
+}
+
+function breakevenYear(rows){
+  for(let i=1;i<rows.length;i++){ if(rows[i].advantage >= 0) return rows[i].year; }
+  return null;
+}
+
+function chipCls(key){ return key==="positive"?"pos":key==="neutral"?"neu":"neg"; }
+
+function renderTableAndCards(){
+  const idx = Math.min(pinnedYear, HORIZON);
+  document.getElementById("pinLabel").textContent = "year "+idx;
+  document.getElementById("tableYearLabel").textContent = "at year "+idx;
+
+  const cardsEl = document.getElementById("metricCards");
+  cardsEl.innerHTML = ORDER.map(([key,label])=>{
+    const row = lastResults[key][idx];
+    const scen = lastScenarios[key];
+    const be = breakevens[key];
+    const advClass = row.advantage>=0 ? "pos-text" : "neg-text";
+    const cc = chipCls(key);
+    let trackHTML;
+    if(be !== null){
+      const p = Math.min(100, be/HORIZON*100);
+      trackHTML = `
+        <div class="be-label">Breaks even in <strong>year ${be}</strong></div>
+        <div class="track">
+          <div class="rail"></div>
+          <div class="fill" style="width:${p}%; background:${COLORS[key]}; opacity:.45;"></div>
+          <div class="knot" style="left:${p}%; background:${COLORS[key]};"></div>
+          <span class="tick-label" style="left:0;">0</span>
+          <span class="tick-label" style="right:0;">30 yrs</span>
+        </div>`;
+    } else {
+      trackHTML = `
+        <div class="be-label"><strong>Never breaks even</strong> within 30 years</div>
+        <div class="track">
+          <div class="rail" style="background:${COLORS[key]}; opacity:.25;"></div>
+          <span class="tick-label" style="left:0;">0</span>
+          <span class="tick-label" style="right:0;">30 yrs</span>
+        </div>`;
+    }
+    return `<div class="metric">
+      <div class="scen-name"><span class="scen-dot" style="background:${COLORS[key]}"></span>${label}</div>
+      <div class="chips">
+        <span class="chip ${cc}">homes ${fmtPct(scen.appreciation)}/yr</span>
+        <span class="chip ${cc}">markets ${fmtPct(scen.invReturn)}/yr</span>
+      </div>
+      <div class="value ${advClass}">${row.advantage>=0?"+":""}${fmtUSDShort(row.advantage)}</div>
+      <div class="value-label">advantage at year ${idx}</div>
+      <div class="sub">Net equity if sold: ${fmtUSDShort(row.netProceeds)}</div>
+      <div class="be-track">${trackHTML}</div>
+    </div>`;
+  }).join("");
+
+  const tbody = document.querySelector("#summaryTable tbody");
+  tbody.innerHTML = ORDER.map(([key,label])=>{
+    const r = lastResults[key][idx];
+    const advClass = r.advantage>=0 ? "pos-text" : "neg-text";
+    return `<tr>
+      <td>${label}</td>
+      <td>${fmtUSD(r.homeValue)}</td>
+      <td>${fmtUSD(r.balance)}</td>
+      <td>${fmtUSD(r.netProceeds)}</td>
+      <td>${fmtUSD(r.renterNW)}</td>
+      <td class="${advClass}">${r.advantage>=0?"+":""}${fmtUSD(r.advantage)}</td>
+    </tr>`;
+  }).join("");
+}
+
+function tooltipOpts(){
+  return {
+    backgroundColor:"#2c2820", borderColor:"rgba(247,242,232,.15)", borderWidth:1,
+    titleColor:"#f7f2e8", bodyColor:"#cfc8b8", padding:12, cornerRadius:4, displayColors:true,
+    boxWidth:8, boxHeight:8, boxPadding:4,
+    titleFont:{family:"Fraunces", style:"italic", weight:"500", size:13},
+    bodyFont:{family:"Inter", size:11.5},
+    callbacks:{
+      title:(items)=>"Year "+items[0].label,
+      label:(c)=>" "+c.dataset.label+": "+fmtUSD(c.parsed.y)
+    }
+  };
+}
+
+function baseScales(){
+  return {
+    x:{ grid:{display:false}, border:{color:"rgba(33,30,24,.3)"},
+        ticks:{color:TICK, font:{family:"Inter", size:10.5}, maxTicksLimit:16},
+        title:{display:true, text:"years from purchase", color:TICK, font:{family:"Fraunces", size:11, style:"italic"}} },
+    y:{ grid:{color:GRID}, border:{display:false},
+        ticks:{color:TICK, font:{family:"Inter", size:10.5}, callback:v=>fmtUSDShort(v)} }
+  };
+}
+
+function render(){
+  const {inp, scenarios} = readInputs();
+  lastScenarios = scenarios;
+  lastResults = {};
+  breakevens = {};
+  for(const key of ["positive","neutral","negative"]){
+    lastResults[key] = runScenario(inp, scenarios[key], HORIZON);
+    breakevens[key] = breakevenYear(lastResults[key]);
+  }
+
+  document.getElementById("peek_pos").textContent = "homes "+fmtPct(scenarios.positive.appreciation);
+  document.getElementById("peek_neu").textContent = "homes "+fmtPct(scenarios.neutral.appreciation);
+  document.getElementById("peek_neg").textContent = "homes "+fmtPct(scenarios.negative.appreciation);
+
+  const years = lastResults.neutral.map(r=>r.year);
+  document.getElementById("legend1").innerHTML = ORDER.map(([key,label])=>{
+    const dash = DASH[key].length ? "dashed" : "solid";
+    return `<span><span class="lswatch" style="border-top-style:${dash}; border-top-color:${COLORS[key]};"></span>${label}</span>`;
+  }).join("");
+
+  const mkDatasets = (field, heavy) => ORDER.map(([key,label])=>({
+    label, data:lastResults[key].map(r=>r[field]),
+    borderColor:COLORS[key], backgroundColor:COLORS[key],
+    borderDash:DASH[key], borderWidth:heavy?2.5:1.8, borderCapStyle:"round",
+    pointRadius:0, pointHoverRadius:5, pointHoverBorderWidth:2,
+    pointHoverBackgroundColor:COLORS[key], pointHoverBorderColor:PAPER,
+    tension:0.3
+  }));
+
+  if(chartAdvantage) chartAdvantage.destroy();
+  chartAdvantage = new Chart(document.getElementById("chartAdvantage"), {
+    type:"line",
+    data:{ labels:years, datasets:mkDatasets("advantage", true) },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:"index", intersect:false},
+      layout:{padding:{top:20}},
+      plugins:{ legend:{display:false}, tooltip:tooltipOpts() },
+      scales:baseScales(),
+      onClick:(evt, elements, chart)=>{
+        const pts = chart.getElementsAtEventForMode(evt, "index", {intersect:false}, true);
+        if(pts.length){
+          pinnedYear = years[pts[0].index];
+          renderTableAndCards();
+          chart.update("none");
+        }
+      },
+      onHover:(evt, elements, chart)=>{ chart.canvas.style.cursor = "pointer"; }
+    },
+    plugins:[belowZeroShade, breakevenRings, pinMarker]
+  });
+
+  if(chartEquity) chartEquity.destroy();
+  chartEquity = new Chart(document.getElementById("chartEquity"), {
+    type:"line",
+    data:{ labels:years, datasets:mkDatasets("netProceeds", false) },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:"index", intersect:false},
+      plugins:{ legend:{display:false}, tooltip:tooltipOpts() },
+      scales:baseScales()
+    },
+    plugins:[belowZeroShade]
+  });
+
+  renderTableAndCards();
+}
+
+document.getElementById("downUnit").addEventListener("change", function(){
+  const price = parseFloat(document.getElementById("price").value)||0;
+  const el = document.getElementById("downVal");
+  const v = parseFloat(el.value)||0;
+  if(this.value === "usd"){ el.value = Math.round(price*v/100); el.step = 5000; }
+  else { el.value = price>0 ? +(v/price*100).toFixed(1) : 20; el.step = 1; }
+  render();
+});
+
+document.querySelectorAll("input, select").forEach(el=>{
+  if(el.id === "downUnit") return;
+  el.addEventListener("input", render);
+  el.addEventListener("change", render);
+});
+render();
+</script>
+</body>
+</html>
